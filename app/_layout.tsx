@@ -13,6 +13,8 @@
 import Login from '../app/login';
 import Index from '../app/index';
 import SignUp from '../app/signUp';
+import HomePage from '../app/shop'; // Import your homepage
+
 import { createStackNavigator } from '@react-navigation/stack';
 
 const Stack = createStackNavigator();
@@ -23,6 +25,7 @@ export default function RootLayout() {
       <Stack.Screen name="INDEX" component={Index} />
       <Stack.Screen name="LOGIN" component={Login} />
       <Stack.Screen name="SIGNUP" component={SignUp} />
+      <Stack.Screen name="Home" component={HomePage} />
     </Stack.Navigator>
   );
 }

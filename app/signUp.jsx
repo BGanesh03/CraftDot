@@ -1,101 +1,142 @@
 import { useNavigation } from 'expo-router';
 import { useState } from 'react';
-import { Text, View,TextInput,Pressable, StyleSheet,TouchableOpacity, Image } from 'react-native';
-// import { auth } from "../services/firebase"
-import { createUserWithEmailAndPassword }from "firebase/auth";
-import { ScrollView } from 'react-native-gesture-handler';
-export default function SiginUp(){
-    const navigation =useNavigation();
+import { 
+  View, Text, TextInput, TouchableOpacity, 
+  Alert, ScrollView, StyleSheet, KeyboardAvoidingView, Platform 
+} from 'react-native';
+import { auth, db } from '@/firebaseauth';
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import LottieView from "lottie-react-native";
 
-const [fname,setFname] = useState();
-const [mobile,setMobile] = useState();
-const [email,setEmail] = useState();
-const [password,setPassword] = useState();
+export default function SignUp() {
+  const navigation = useNavigation();
 
-const Register = ()=>{
-  createUserWithEmailAndPassword(auth,email,password)
-  .then(async(UserCredential)=>{
-    const user = UserCredential.user;
-    console.log(user);
-    // save user to database
-    await saveUser(user);
-  })
-  .catch(e=>{
-    console.log(e.message)
-  })
-}
+  // State for user input
+  const [fname, setFname] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-const saveUser = async(user)=>{
-  await setDoc(doc(db,'users',email),{
-    name:fname,
-    mobile:mobile,
-    email:email,
-    password:password,
-    uid:user?.uid
-  })
-}
+  const Register = async () => {
+    if (!fname || !mobile || !email || !password) {
+      Alert.alert("Error", "Please fill all fields");
+      return;
+    }
 
+    setLoading(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      const user = userCredential.user;
+
+      // 🔹 Save user data in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        fullName: fname.trim(),
+        mobile: mobile.trim(),
+        email: user.email,
+        createdAt: new Date(),
+      });
+
+      Alert.alert("Signup Successful", "Your account has been created!");
+      navigation.replace("LOGIN"); // Redirect to login page
+    } catch (error) {
+      Alert.alert("Signup Failed", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   return (
-    <ScrollView>
-          <View style={{backgroundColor:'#cebde6',height : 800}}>
+   
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        
+        {/* 🔹 Lottie Animation (30% of the screen) */}
+        <View style={styles.animationContainer}>
+          <LottieView 
+            source={require("../assets/lottie/signup.json")} // Ensure this file exists
+            autoPlay
+            loop
+            resizeMode="cover"
+            style={styles.lottie}
+          />
+        </View>
 
-<View style={{justifyContent:'center',
-  alignItems:'center',backgroundColor : "#cebde6"}}>
-  <Image source={require('../assets/images/si.jpg')} style={{width:400,height:250,marginTop : 0}} />
-</View>
-<Text style={{marginTop:20,textAlign:'center',fontFamily:'backgroundColor',fontSize:25}}>Create a New Account </Text>
-<View style={{margin:30}}>
-  <TextInput placeholder='Full Name' 
-  onChangeText={(value)=>setFname(value)}
-  style={{borderWidth:1,
-  marginBottom:15,
-  padding:8,
-  borderRadius:8,
-  }}
-  />
-  <TextInput placeholder='Mobile No.'
-  onChangeText={(value)=>setFname(value)} 
-  style={{borderWidth:1,
-  padding:8,
-  marginBottom:15,
-  borderRadius:8,
-  }}
-  />
-  <TextInput placeholder='Email' 
-  onChangeText={(value)=>setFname(value)}
-  style={{borderWidth:1,
-  padding:8,
-  marginBottom:15,
-  borderRadius:8,
-  }}
-  />
+        {/* 🔹 Sign-up Form (70% of the screen) */}
+        <View style={styles.signupContainer}>
+          <Text style={styles.title}>Create a New Account</Text>
 
-  <TextInput placeholder='Password' 
-  onChangeText={(value)=>setFname(value)}
-  style={{borderWidth:1,
-  padding:8,
-  borderRadius:8,
-  }}
-  />
-</View>
+          <TextInput placeholder="Full Name" value={fname} onChangeText={setFname} style={styles.input} />
+          <TextInput placeholder="Mobile No." value={mobile} onChangeText={setMobile} style={styles.input} keyboardType="phone-pad" />
+          <TextInput placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" style={styles.input} />
+          <TextInput placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
 
-<View>
-  <TouchableOpacity onPress={Register} style={{marginLeft:40,marginRight:40,
-  padding:10,borderRadius:8,backgroundColor:'blue'
-  }}>
-    <Text style={{textAlign:'center',color:'white'}}>Submit</Text>
-  </TouchableOpacity>
-</View>
+          <TouchableOpacity onPress={Register} style={styles.button} disabled={loading}>
+            <Text style={styles.buttonText}>{loading ? "Creating Account..." : "Submit"}</Text>
+          </TouchableOpacity>
 
-<View style={{display:'flex',flexDirection:'row',gap:10,marginTop:10,justifyContent:'center'}}>
-  <Text  style={{fontFamily:'AssetExample',fontSize:18,textAlign:'center'}}>Already have an Account ?</Text>
-  <Pressable onPress={()=>navigation.navigate('LOGIN')}>
-    <Text style={{color:'blue',fontSize:18,fontFamily:'AssetExample' }}>Login </Text>
-  </Pressable>
-</View>
+          <View style={styles.loginLinkContainer}>
+            <Text style={styles.loginText}>Already have an account?</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('LOGIN')}>
+              <Text style={styles.loginLink}>Login</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
-</View>
-    </ScrollView>
-
-  )
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
 }
+
+// 🔹 Styles
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#fff" },
+
+  // Top 30% - Lottie Animation
+  animationContainer: { 
+    height: "30%",  
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  lottie: { 
+    width: "100%", 
+    height: "100%",
+  },
+
+  // Bottom 70% - Sign-up Form
+  signupContainer: { 
+    height: "70%",  
+    padding: 20,
+    alignItems: "center",
+    backgroundColor: "#fff", 
+    borderTopLeftRadius: 30,  
+    borderTopRightRadius: 30,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+  },
+
+  title: { fontSize: 24, fontWeight: "bold", marginBottom: 20, color: "#333" },
+
+  input: { 
+    width: "100%", 
+    padding: 12, 
+    borderRadius: 10, 
+    borderWidth: 1, 
+    borderColor: "#ccc", 
+    backgroundColor: "#f9f9f9", 
+    marginBottom: 10, 
+    color: "#000",
+  },
+
+  button: { backgroundColor: "#ff6600", padding: 12, borderRadius: 10, width: "100%", alignItems: "center" },
+  buttonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
+
+  loginLinkContainer: { flexDirection: "row", gap: 10, marginTop: 10, justifyContent: "center" },
+  loginText: { fontSize: 18 },
+  loginLink: { color: "blue", fontSize: 18 },
+});
+
+// export default SignUp;
