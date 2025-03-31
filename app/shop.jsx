@@ -1,27 +1,73 @@
 import React from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, ImageBackground, Alert } from "react-native";
+import { Entypo } from "@expo/vector-icons";
+import { useState,useEffect } from "react";
+import { useNavigation ,useRoute} from "@react-navigation/native";
+import { useRouter } from "expo-router";
+import { navigate } from "expo-router/build/global-state/routing";
+// import pro from "./Profile";
+import { supabase } from "../components/supabase/supabase"; 
+import Profile from "./Profile";
 
 const HomePage = () => {
-  const handleRestaurantPress = (name) => {
-    Alert.alert("Selected", `You selected ${name}`);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [restaurants, setRestaurants] = useState([]);
+  const navigation = useNavigation();
+  const router = useRouter();
+  const route = useRoute();
+ const { user_id } = route.params || {};
+  
+ useEffect(() => {
+  const fetchRestaurants = async () => {
+    const { data, error } = await supabase.from("restaurant_names").select("name, rating, res_id");
+    if (error) {
+      console.error("Error fetching restaurants:", error);
+    } else {
+      console.log(data);
+      setRestaurants(data);
+    }
   };
+  fetchRestaurants();
+}, []);
+
+const handleRestaurantPress = (restaurant) => {
+  // console.log("Full Restaurant Object:", restaurant); // Debugging
+  // console.log("Navigating with res_id:", restaurant.res_id); // Debugging
+  navigation.navigate("menu", { res_id: restaurant.res_id });
+};
+
+
+
+  const handleLogout = async () => {
+    navigation.replace('LOGIN');
+  };
+  console.log(user_id);
 
     return (
-        <ImageBackground source={require("@/assets/images/back1.png")} style={styles.backgroundImage}>
-        <ScrollView style={styles.container}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.logo}>CraftDot</Text>
-            </View>
-            {/* <View style={styles.authButtons}>
-              <TouchableOpacity onPress={() => console.log("Navigate to Login")}>
-                <Text style={styles.navLink}>Login</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.navButton} onPress={() => console.log("Navigate to Sign Up")}>
-                <Text style={styles.navButtonText}>Sign Up</Text>
-              </TouchableOpacity>
-            </View>
-          </View> */}
+      <ImageBackground source={require("@/assets/images/back1.png")} style={styles.backgroundImage}>
+      <ScrollView style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.logo}>CraftDot</Text>
+          <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)}>
+            <Entypo name="dots-three-vertical" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Dashboard Menu */}
+        {menuVisible && (
+          <View style={styles.menuDropdown}>
+            <TouchableOpacity onPress={() => navigation.navigate("Profile", {user_id: user_id})}> 
+              <Text style={styles.menuItem}>Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => Alert.alert("History", "View Order History")}> 
+              <Text style={styles.menuItem}>History</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleLogout}> 
+              <Text style={styles.menuItem}>Logout</Text>
+            </TouchableOpacity>
+          </View>
+        )}
     
           {/* Hero Section */}
           <View style={styles.heroSection}>
@@ -49,95 +95,21 @@ const HomePage = () => {
             </View>
           </View>
     
-          {/* Featured Restaurants */}
           <View style={styles.restaurants}>
-            <Text style={styles.sectionTitle}>Popular Restaurants</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.popularrestaurant}>
-              <TouchableOpacity 
-                style={styles.restaurantCard} 
-                onPress={() => handleRestaurantPress("Foodie's Delight")}
-              >
-                <Image source={require("@/assets/images/bazaar.jpg")} style={styles.restaurantImage} />
-                <Text style={styles.restaurantName}>Foodie's Delight</Text>
-                <Text style={styles.restaurantRating}>⭐ 4.5 | Fast Delivery</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={styles.restaurantCard}
-                onPress={() => handleRestaurantPress("Taste Hub")}
-              >
-                <Image source={require("@/assets/images/kitchen.jpg")} style={styles.restaurantImage} />
-                <Text style={styles.restaurantName}>Taste Hub</Text>
-                <Text style={styles.restaurantRating}>⭐ 4.2 | Customizable Dishes</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={styles.restaurantCard}
-                onPress={() => handleRestaurantPress("Spice Heaven")}
-              >
-                <Image source={require("@/assets/images/bazaar.jpg")} style={styles.restaurantImage} />
-                <Text style={styles.restaurantName}>Spice Heaven</Text>
-                <Text style={styles.restaurantRating}>⭐ 4.7 | Best Offers</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={styles.restaurantCard}
-                onPress={() => handleRestaurantPress("Bake Your Cake")}
-              >
-                <Image source={require("@/assets/images/cake.jpg")} style={styles.restaurantImage} />
-                <Text style={styles.restaurantName}>bake your cake</Text>
-                <Text style={styles.restaurantRating}>⭐ 4.8 | Best Offers</Text>
-              </TouchableOpacity>
-            </ScrollView>
-            
-            <View>
-              <Text style={styles.heroTitle}>Restaurants</Text>
-              <ScrollView>
-              <TouchableOpacity 
-                style={styles.restaurantCard1}
-                onPress={() => handleRestaurantPress("Foodie's Delight")}
-              >
-                <Image source={require("@/assets/images/bazaar.jpg")} style={styles.restaurantImage1} />
-                <Text style={styles.restaurantName}>Foodie's Delight</Text>
-                <Text style={styles.restaurantRating}>⭐ 4.5 | Fast Delivery</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.restaurantCard1}
-                onPress={() => handleRestaurantPress("Taste Hub")}
-              >
-                <Image source={require("@/assets/images/kitchen.jpg")} style={styles.restaurantImage1} />
-                <Text style={styles.restaurantName}>Taste Hub</Text>
-                <Text style={styles.restaurantRating}>⭐ 4.2 | Customizable Dishes</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.restaurantCard1}
-                onPress={() => handleRestaurantPress("Spice Heaven")}
-              >
-                <Image source={require("@/assets/images/bazaar.jpg")} style={styles.restaurantImage1} />
-                <Text style={styles.restaurantName}>Spice Heaven</Text>
-                <Text style={styles.restaurantRating}>⭐ 4.7 | Best Offers</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.restaurantCard1}
-                onPress={() => handleRestaurantPress("Bake Your Cake")}
-              >
-                <Image source={require("@/assets/images/cake.jpg")} style={styles.restaurantImage1} />
-                <Text style={styles.restaurantName}>bake your cake</Text>
-                <Text style={styles.restaurantRating}>⭐ 4.8 | Best Offers</Text>
-              </TouchableOpacity>
-              </ScrollView>
-            </View>
-    
-            <View>
-            </View>
-    
-            <TouchableOpacity 
-              style={styles.cart}
-              onPress={() => Alert.alert("Cart", "View cart items")}
+          <Text style={styles.sectionTitle}>Popular Restaurants</Text>
+          {restaurants.map((restaurant, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.restaurantCard1}
+              onPress={() => handleRestaurantPress(restaurant)}
             >
-              <Text style={{ color: "white", fontWeight: "bold" }}>View Cart</Text>
+              <Image source={require("@/assets/images/bazaar.jpg")} style={styles.restaurantImage1} />
+              <Text style={styles.restaurantName}>{restaurant.name}</Text>
+              <Text style={styles.restaurantRating}>⭐ {restaurant.rating} | Fast Delivery</Text>
             </TouchableOpacity>
-          </View>
+          ))}
+        </View>
+
     
           {/* Footer */}
           <View style={styles.footer}>

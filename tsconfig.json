@@ -13,5 +13,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-, "components/login.jsx", "components/frontpage.jsx", "app/(tabs)/index.tsx", "firebaseauth.jsx", "zybite/index.jsx"  ]
+, "components/login.jsx", "components/frontpage.jsx", "app/(tabs)/index.tsx", "firebaseauth.jsx", "zybite/index.jsx", "app/_layout.jsx", "components/supabase/supabase.js"  ]
 }

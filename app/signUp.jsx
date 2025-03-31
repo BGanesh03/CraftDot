@@ -4,9 +4,10 @@ import {
   View, Text, TextInput, TouchableOpacity, 
   Alert, ScrollView, StyleSheet, KeyboardAvoidingView, Platform 
 } from 'react-native';
-import { auth, db } from '@/firebaseauth';
+import { auth, db } from '@/firebaseauth';  // Firebase setup
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
+import { supabase } from '@/components/supabase/supabase';  // Supabase setup
 import LottieView from "lottie-react-native";
 
 export default function SignUp() {
@@ -27,16 +28,36 @@ export default function SignUp() {
 
     setLoading(true);
     try {
+      // 🔹 Create user in Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
       const user = userCredential.user;
 
-      // 🔹 Save user data in Firestore
+      // 🔹 Save user data in Firestore (Firebase)
       await setDoc(doc(db, "users", user.uid), {
         fullName: fname.trim(),
         mobile: mobile.trim(),
         email: user.email,
         createdAt: new Date(),
       });
+
+      // 🔹 Save user data in Supabase
+      const { data, error } = await supabase.from("users").insert([
+        {
+          user_id: user.uid,  // Firebase UID as Primary Key
+          name: fname.trim(),
+          email: user.email,
+          mobile : mobile.trim(),
+          created_at: new Date(),
+        }
+      ]);
+
+      if (error) {
+        if (error.code === "23505") {  // 23505 = UNIQUE constraint violation in PostgreSQL
+          console.warn("User already exists in Supabase.");
+        } else {
+          throw new Error(error.message);
+        }
+      }
 
       Alert.alert("Signup Successful", "Your account has been created!");
       navigation.replace("LOGIN"); // Redirect to login page
@@ -48,11 +69,10 @@ export default function SignUp() {
   };
   
   return (
-   
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         
-        {/* 🔹 Lottie Animation (30% of the screen) */}
+        {/* 🔹 Lottie Animation */}
         <View style={styles.animationContainer}>
           <LottieView 
             source={require("../assets/lottie/signup.json")} // Ensure this file exists
@@ -63,7 +83,7 @@ export default function SignUp() {
           />
         </View>
 
-        {/* 🔹 Sign-up Form (70% of the screen) */}
+        {/* 🔹 Sign-up Form */}
         <View style={styles.signupContainer}>
           <Text style={styles.title}>Create a New Account</Text>
 
@@ -72,8 +92,14 @@ export default function SignUp() {
           <TextInput placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" style={styles.input} />
           <TextInput placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
 
+          {/* 🔹 User Signup Button */}
           <TouchableOpacity onPress={Register} style={styles.button} disabled={loading}>
             <Text style={styles.buttonText}>{loading ? "Creating Account..." : "Submit"}</Text>
+          </TouchableOpacity>
+
+          {/* 🔹 Restaurant Signup Button (Navigates to Restaurant Signup Page) */}
+          <TouchableOpacity onPress={() => navigation.navigate('rest')} style={styles.restaurantButton}>
+            <Text style={styles.buttonText}>Sign Up as Restaurant</Text>
           </TouchableOpacity>
 
           <View style={styles.loginLinkContainer}>
@@ -93,7 +119,6 @@ export default function SignUp() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
 
-  // Top 30% - Lottie Animation
   animationContainer: { 
     height: "30%",  
     justifyContent: "center",
@@ -104,7 +129,6 @@ const styles = StyleSheet.create({
     height: "100%",
   },
 
-  // Bottom 70% - Sign-up Form
   signupContainer: { 
     height: "70%",  
     padding: 20,
@@ -131,7 +155,8 @@ const styles = StyleSheet.create({
     color: "#000",
   },
 
-  button: { backgroundColor: "#ff6600", padding: 12, borderRadius: 10, width: "100%", alignItems: "center" },
+  button: { backgroundColor: "#ff6600", padding: 12, borderRadius: 10, width: "100%", alignItems: "center", marginBottom: 10 },
+  restaurantButton: { backgroundColor: "#0066ff", padding: 12, borderRadius: 10, width: "100%", alignItems: "center" },
   buttonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
 
   loginLinkContainer: { flexDirection: "row", gap: 10, marginTop: 10, justifyContent: "center" },
@@ -139,4 +164,3 @@ const styles = StyleSheet.create({
   loginLink: { color: "blue", fontSize: 18 },
 });
 
-// export default SignUp;

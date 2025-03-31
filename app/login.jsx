@@ -6,24 +6,54 @@ import {
 } from "react-native";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import LottieView from "lottie-react-native";
+import {auth,db} from "../firebaseauth";
+import { supabase } from "../components/supabase/supabase";
+// import { getUserByMail } from "@/components/supabase/dbActions";
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");  // ✅ Add this state
+  // const navigation = useNavigation();
 
   const handleLogin = async () => {
+    setError("");  // Reset the error state before starting
+  
     try {
-      console.log("Logging in with:", email, password);
-      const auth = getAuth();
-      await signInWithEmailAndPassword(auth, email, password);
-      Alert.alert("Login Successful", "Welcome back!");
-      navigation.navigate("Home");
+      // 🔥 Firebase Authentication
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+  
+      console.log("Firebase User:", user.email);  // Log the Firebase user email
+  
+      // 🔍 Fetch data from Supabase (user's name)
+      const { data, error: supabaseError } = await supabase
+        .from("users")
+        .select("user_id")  // Selecting the 'name' field from the users table
+        .eq("email", user.email)  // Match by email
+        .single();  // Get a single row result
+  
+      if (supabaseError) {
+        console.error("Supabase Fetch Error:", supabaseError);
+        setError("Failed to retrieve user data. Try again.");
+        return;
+      }
+  
+      // Log the fetched data from Supabase
+      console.log("Fetched Data from Supabase:", data);
+  
+      // If 'data' is returned successfully, navigate to the Home screen
+      if (data) {
+        console.log("User Name:", data.user_id);  // Log the user's name fetched from Supabase
+        navigation.navigate("Home", { user_id: data.user_id });  // Pass the name to Home screen (or other relevant data)
+      }
+  
     } catch (error) {
-      console.error("Login Error:", error.code, error.message);
-      Alert.alert("Login Failed", `Error: ${error.message}`);
+      console.error("Login Error:", error.message);  // Log any error that occurs during login
+      setError(error.message);  // Set the error message to display in the UI
     }
   };
-
+  
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>

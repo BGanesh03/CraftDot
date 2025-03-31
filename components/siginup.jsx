@@ -2,6 +2,7 @@ import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 import { useState } from 'react';
 
 export default function SignUp({ onGoBack }) {
+  const [name , setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -13,6 +14,13 @@ export default function SignUp({ onGoBack }) {
     <View style={styles.container}>
       <Text style={styles.title}>Sign Up</Text>
       
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your Name"
+        value={name}
+        onChangeText={(text) => setName(text)}
+      />
+
       <TextInput
         style={styles.input}
         placeholder="Enter your email"
