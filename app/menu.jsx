@@ -19,8 +19,8 @@ const { width, height } = Dimensions.get('window');
 export default function RestaurantMenu() {
   const route = useRoute();
   const navigation = useNavigation();
-  
-  const res_id = route.params?.res_id;
+  const { user_id , res_id} = route.params || {};
+  // const res_id = route.params?.res_id;
 
   const [menuItems, setMenuItems] = useState([]);
   const [cart, setCart] = useState([]);
@@ -116,14 +116,16 @@ export default function RestaurantMenu() {
 
     const selectedIngredients = customIngredients.filter(ing => ing.selectedQuantity > 0);
     
-    const additionalPrice = selectedIngredients.reduce((total, ingredient) => 
+    // Calculate only the cost of customizations
+    const customizationPrice = selectedIngredients.reduce((total, ingredient) => 
       total + (ingredient.price * ingredient.selectedQuantity), 0);
 
+    // Create dish object with ONLY customization price as the total price
     const customizedDish = {
       ...selectedDish,
       customIngredients: selectedIngredients,
-      totalPrice: selectedDish.base_price + additionalPrice,
-      originalBasePrice: selectedDish.base_price
+      totalPrice: customizationPrice,  // Only the customization price
+      basePrice: selectedDish.base_price  // Store base price just for reference
     };
 
     const existingItemIndex = findExistingItemIndex(cart, customizedDish);
@@ -156,6 +158,7 @@ export default function RestaurantMenu() {
     navigation.navigate('CartPage', { 
       cartItems: cart, 
       restaurantId: res_id,
+      user_id : user_id,
       updateCart: updateCartFromMenu
     });
   };
@@ -319,7 +322,7 @@ const styles = StyleSheet.create({
   menuItemPrice: { 
     fontSize: 15, 
     fontWeight: '700', 
-    color: '#2ecc71' 
+    color: 'purple' 
   },
   modalOverlay: {
     flex: 1,
@@ -368,14 +371,14 @@ const styles = StyleSheet.create({
   },
   quantityButtonText: {
     fontSize: 16,
-    color: '#2ecc71'
+    color: 'purple'
   },
   quantityText: {
     marginHorizontal: 10,
     fontSize: 16
   },
   addToCartButton: {
-    backgroundColor: '#2ecc71',
+    backgroundColor: 'purple',
     padding: 15,
     borderRadius: 10,
     marginTop: 15,
@@ -391,7 +394,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 15,
-    backgroundColor: '#2ecc71',
+    backgroundColor: 'purple',
     position: 'absolute',
     bottom: 0,
     width: '100%',

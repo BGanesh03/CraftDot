@@ -6,10 +6,16 @@ import {
   TouchableOpacity, 
   StyleSheet, 
   SafeAreaView, 
-  StatusBar 
+  StatusBar,
+  TextInput,
+  ActivityIndicator,
+  Alert,
+  Modal
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { supabase } from '../components/supabase/supabase';
+
 
 export default function CartPage() {
   const route = useRoute();
@@ -17,7 +23,17 @@ export default function CartPage() {
   
   const { cartItems, restaurantId, updateCart } = route.params;
   const [cart, setCart] = useState(cartItems || []);
-
+  
+  // Checkout state
+  const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
+  const [address, setAddress] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [detail, setDetail] = useState([]);
+  const { user_id } = route.params || {};
+  // const [userId, setUserId] = useState('user123'); // In a real app, get from auth context
+  const [orderPlaced, setOrderPlaced] = useState(false);
+  const [orderId, setOrderId] = useState(null);
+  // console.log(user_id)
   const findExistingItemIndex = (cartArray, item) => {
     return cartArray.findIndex(cartItem => {
       const sameCustomIngredients = cartItem.customIngredients.length === item.customIngredients.length &&
@@ -70,13 +86,91 @@ export default function CartPage() {
   };
 
   const handleProceedToCheckout = () => {
-    navigation.navigate('Checkout', {
-      cartItems: cart,
-      restaurantId: restaurantId,
-      totalAmount: calculateSubtotal()
-    });
+    setCheckoutModalVisible(true);
   };
 
+  const handlePlaceOrder = async () => {
+    if (!address.trim()) {
+        Alert.alert('Error', 'Please enter your delivery address');
+        return;
+    }
+    if (!user_id) {
+        Alert.alert('Error', 'User ID is missing. Please log in again.');
+        return;
+    }
+
+    setLoading(true);
+    const generatedOrderId = Math.floor(100000 + Math.random() * 900000).toString();
+    setOrderId(generatedOrderId); // Set the order ID
+    console.log("Generated Order ID:", generatedOrderId); // Log the generated order ID
+
+    try {
+        // Prepare the order data
+        const orderData = {
+            order_id: generatedOrderId,
+            user_id: user_id,
+            res_id: restaurantId,
+            price: calculateSubtotal(),
+            status: 'pending',
+            order_time: new Date().toISOString(),
+            address: address,
+        };
+
+        // Insert the order into the 'orders' table in Supabase
+        const { data, error } = await supabase
+            .from('orders')
+            .insert([orderData])
+            .single();
+
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        // If insertion is successful
+        setLoading(false);
+        setOrderPlaced(true);
+        setCart([]);
+        updateCart([]);
+
+        Alert.alert('Success', `Order placed successfully! Your order ID is ${generatedOrderId}`);
+
+        // Fetch order details after placing the order
+        await getData(generatedOrderId); // Pass the generatedOrderId to getData
+    } catch (error) {
+        setLoading(false);
+        Alert.alert('Error', 'Failed to place order. Please try again.');
+        console.error('Order placement error:', error);
+    }
+};
+
+const getData = async (orderId) => {
+    if (!orderId) {
+        console.error("Order ID is not set.");
+        return;
+    }
+
+    console.log("Fetching data for order ID:", orderId); // Log the order ID
+
+    const { data, error } = await supabase
+        .from("orders")
+        .select("order_id, user_id, address, res_id,price") // Ensure you're selecting the correct fields
+        .eq("order_id", orderId)
+        .single();
+
+    if (error) {
+        console.error("Supabase Fetch Error:", error);
+        Alert.alert("Error", "Failed to retrieve order details. Try again.");
+        return;
+    }
+
+    setDetail(data); // Set the fetched data to detail state
+};
+
+  const handleContinueShopping = () => {
+    setOrderPlaced(false);
+    setCheckoutModalVisible(false);
+    navigation.goBack(); // Go back to the menu
+  };
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -93,7 +187,7 @@ export default function CartPage() {
       </View>
 
       {/* Cart Items */}
-      {cart.length === 0 ? (
+      {cart.length === 0 && !orderPlaced ? (
         <View style={styles.emptyCartContainer}>
           <Ionicons name="cart-outline" size={100} color="#cccccc" />
           <Text style={styles.emptyCartText}>Your cart is empty</Text>
@@ -179,6 +273,133 @@ export default function CartPage() {
           </TouchableOpacity>
         </>
       )}
+
+      {/* Checkout Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={checkoutModalVisible}
+        onRequestClose={() => {
+          if (!orderPlaced) setCheckoutModalVisible(false);
+        }}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            {/* Order Success View */}
+            {orderPlaced ? (
+              <View style={styles.orderSuccessContainer}>
+                <Ionicons name="checkmark-circle" size={80} color="green" />
+                <Text style={styles.orderSuccessTitle}>Order Confirmed!</Text>
+                <Text style={styles.orderIdText}>Order ID: #{detail.order_id}</Text>
+                
+                <View style={styles.orderDetailsCard}>
+                  <Text style={styles.orderDetailsTitle}>Order Details</Text>
+                  
+                  <View style={styles.orderDetailRow}>
+                    <Text style={styles.orderDetailLabel}>User ID</Text>
+                    <Text style={styles.orderDetailValue}>{detail.user_id}</Text>
+                  </View>
+                  
+                  <View style={styles.orderDetailRow}>
+                    <Text style={styles.orderDetailLabel}>Restaurant ID</Text>
+                    <Text style={styles.orderDetailValue}>{detail.res_id}</Text>
+                  </View>
+                  
+                  <View style={styles.orderDetailRow}>
+                    <Text style={styles.orderDetailLabel}>Delivery Address</Text>
+                    <Text style={styles.orderDetailValue}>{detail.address}</Text>
+                  </View>
+                  
+                  <View style={styles.orderDetailRow}>
+                    <Text style={styles.orderDetailLabel}>Total Amount</Text>
+                    <Text style={styles.orderDetailValue}>₹{detail.price}</Text>
+                  </View>
+                </View>
+                
+                <TouchableOpacity 
+                  style={styles.continueShoppingButton}
+                  onPress={handleContinueShopping}
+                >
+                  <Text style={styles.continueShoppingButtonText}>Continue Shopping</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <>
+                {/* Checkout Form */}
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Checkout</Text>
+                  <TouchableOpacity onPress={() => setCheckoutModalVisible(false)}>
+                    <Ionicons name="close" size={24} color="#333" />
+                  </TouchableOpacity>
+                </View>
+                
+                <ScrollView style={styles.checkoutFormContainer}>
+                  {/* Order Summary */}
+                  <View style={styles.checkoutSection}>
+                    <Text style={styles.checkoutSectionTitle}>Order Summary</Text>
+                    
+                    <View style={styles.orderSummaryRow}>
+                      <Text style={styles.orderSummaryLabel}>Items</Text>
+                      <Text style={styles.orderSummaryValue}>{calculateTotalItems()}</Text>
+                    </View>
+                    
+                    <View style={styles.orderSummaryRow}>
+                      <Text style={styles.orderSummaryLabel}>Restaurant ID</Text>
+                      <Text style={styles.orderSummaryValue}>{restaurantId}</Text>
+                    </View>
+                    
+                    <View style={styles.orderSummaryTotalRow}>
+                      <Text style={styles.orderSummaryTotalLabel}>Total</Text>
+                      <Text style={styles.orderSummaryTotalValue}>₹{calculateSubtotal().toFixed(2)}</Text>
+                    </View>
+                  </View>
+                  
+                  {/* Delivery Address */}
+                  <View style={styles.checkoutSection}>
+                    <Text style={styles.checkoutSectionTitle}>Delivery Address</Text>
+                    <TextInput
+                      style={styles.addressInput}
+                      placeholder="Enter your delivery address"
+                      value={address}
+                      onChangeText={setAddress}
+                      multiline
+                      numberOfLines={3}
+                    />
+                  </View>
+                  
+                  {/* Payment Method - Just a placeholder, not functional */}
+                  <View style={styles.checkoutSection}>
+                    <Text style={styles.checkoutSectionTitle}>Payment Method</Text>
+                    <TouchableOpacity style={styles.paymentOption}>
+                      <View style={styles.paymentOptionContent}>
+                        <Ionicons name="cash-outline" size={24} color="purple" />
+                        <Text style={styles.paymentOptionText}>Cash on Delivery</Text>
+                      </View>
+                      <Ionicons name="checkmark-circle" size={24} color="purple" />
+                    </TouchableOpacity>
+                  </View>
+                </ScrollView>
+                
+                {/* Place Order Button */}
+                <TouchableOpacity 
+                  style={styles.placeOrderButton}
+                  onPress={handlePlaceOrder}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <>
+                      <Text style={styles.placeOrderButtonText}>Place Order</Text>
+                      <Text style={styles.placeOrderButtonSubtext}>₹{calculateSubtotal().toFixed(2)}</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -236,7 +457,7 @@ const styles = StyleSheet.create({
   cartItemPrice: {
     fontSize: 15,
     fontWeight: 'bold',
-    color: '#28a745'
+    color: 'purple'
   },
   quantityControl: {
     alignItems: 'center'
@@ -244,13 +465,13 @@ const styles = StyleSheet.create({
   quantityControlButtons: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#28a745',
+    backgroundColor: 'purple',
     borderRadius: 5,
     overflow: 'hidden'
   },
   quantityButton: {
     padding: 8,
-    backgroundColor: '#28a745'
+    backgroundColor: 'purple'
   },
   quantityText: {
     paddingHorizontal: 15,
@@ -292,10 +513,10 @@ const styles = StyleSheet.create({
   orderSummaryTotalValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#28a745'
+    color: 'purple'
   },
   checkoutButton: {
-    backgroundColor: '#28a745',
+    backgroundColor: 'purple',
     padding: 15,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -323,7 +544,7 @@ const styles = StyleSheet.create({
     marginTop: 15
   },
   backToMenuButton: {
-    backgroundColor: '#28a745',
+    backgroundColor: 'purple',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 5,
@@ -331,6 +552,151 @@ const styles = StyleSheet.create({
   },
   backToMenuButtonText: {
     color: 'white',
+    fontWeight: 'bold'
+  },
+  
+  // Modal Styles
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)'
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    height: '90%'
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0'
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333'
+  },
+  checkoutFormContainer: {
+    padding: 15,
+    maxHeight: '70%'
+  },
+  checkoutSection: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 15
+  },
+  checkoutSectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10
+  },
+  addressInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    padding: 10,
+    backgroundColor: 'white',
+    textAlignVertical: 'top'
+  },
+  paymentOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    padding: 15,
+    borderRadius: 5
+  },
+  paymentOptionContent: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  paymentOptionText: {
+    marginLeft: 10,
+    fontSize: 15
+  },
+  placeOrderButton: {
+    backgroundColor: 'purple',
+    padding: 15,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  placeOrderButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold'
+  },
+  placeOrderButtonSubtext: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold'
+  },
+  
+  // Order Success Styles
+  orderSuccessContainer: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 20,
+    paddingTop: 40
+  },
+  orderSuccessTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 15
+  },
+  orderIdText: {
+    fontSize: 16,
+    color: '#666',
+    marginVertical: 5
+  },
+  orderDetailsCard: {
+    width: '100%',
+    backgroundColor: '#f9f9f9',
+    borderRadius: 10,
+    padding: 15,
+    marginTop: 20
+  },
+  orderDetailsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10
+  },
+  orderDetailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee'
+  },
+  orderDetailLabel: {
+    fontSize: 14,
+    color: '#666'
+  },
+  orderDetailValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333'
+  },
+  continueShoppingButton: {
+    backgroundColor: 'purple',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 5,
+    marginTop: 30,
+    width: '100%',
+    alignItems: 'center'
+  },
+  continueShoppingButtonText: {
+    color: 'white',
+    fontSize: 16,
     fontWeight: 'bold'
   }
 });

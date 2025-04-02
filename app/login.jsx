@@ -38,14 +38,15 @@ const LoginScreen = ({ navigation }) => {
         setError("Failed to retrieve user data. Try again.");
         return;
       }
-  
       // Log the fetched data from Supabase
       console.log("Fetched Data from Supabase:", data);
   
       // If 'data' is returned successfully, navigate to the Home screen
       if (data) {
         console.log("User Name:", data.user_id);  // Log the user's name fetched from Supabase
-        navigation.navigate("Home", { user_id: data.user_id });  // Pass the name to Home screen (or other relevant data)
+        navigation.navigate("Home", { user_id: data.user_id });
+         // Pass the name to Home screen (or other relevant data)
+          // Pass the name to Home screen (or other relevant data)
       }
   
     } catch (error) {

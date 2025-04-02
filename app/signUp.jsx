@@ -152,6 +152,8 @@ const styles = StyleSheet.create({
     borderColor: "#ccc", 
     backgroundColor: "#f9f9f9", 
     marginBottom: 10, 
+
+    
     color: "#000",
   },
 
