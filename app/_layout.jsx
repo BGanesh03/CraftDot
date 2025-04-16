@@ -20,6 +20,7 @@ import RestaurantLogin from '../restaurants/reslogin';
 import Profilee from './Profile';
 import RestaurantMenu from './menu';
 import { createStackNavigator } from '@react-navigation/stack';
+import MapScreen from './MapScreen';
 import OrderSummary from './summary'
 // import HomePage from '../shop.jsx'
 const Stack = createStackNavigator();
@@ -47,6 +48,7 @@ export default function RootLayout() {
          <Stack.Screen name="menu" component={RestaurantMenu} options={{ title: 'RestaurantMenu' }} /> 
         <Stack.Screen name="CartPage" component={CartPage} options={{ title: 'CartPage' }} />
         <Stack.Screen name="OrderSummary" component={OrderSummary} options={{ title: 'OrderSummary' }} />
+        <Stack.Screen name="MapScreen" component={MapScreen} options={{ title: 'map' }} />
 
 
 

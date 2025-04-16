@@ -13,16 +13,16 @@ import {
   Modal
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
+import MapScreen from './MapScreen';
 import { supabase } from '../components/supabase/supabase';
-
 
 export default function CartPage() {
   const route = useRoute();
   const navigation = useNavigation();
   
-  const { cartItems, restaurantId, updateCart } = route.params;
-  const [cart, setCart] = useState(cartItems || []);
+  const { cartItems: initialCartItems, restaurantId, updateCart } = route.params;
+  const [cart, setCart] = useState(initialCartItems || []);
   
   // Checkout state
   const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
@@ -30,10 +30,37 @@ export default function CartPage() {
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState([]);
   const { user_id } = route.params || {};
-  // const [userId, setUserId] = useState('user123'); // In a real app, get from auth context
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState(null);
-  // console.log(user_id)
+
+  // Update address when it comes from MapScreen and preserve cart items
+  useEffect(() => {
+    if (route.params?.address) {
+      console.log("Address received from map:", route.params.address);
+      setAddress(route.params.address);
+    }
+    
+    // Make sure to preserve cart items when returning from MapScreen
+    if (route.params?.cartItems) {
+      console.log("Cart items preserved after map navigation:", route.params.cartItems);
+      setCart(route.params.cartItems);
+    }
+  }, [route.params?.address, route.params?.cartItems]);
+
+  // We can also use useFocusEffect to ensure the address is updated when returning from MapScreen
+  useFocusEffect(
+    React.useCallback(() => {
+      if (route.params?.address) {
+        setAddress(route.params.address);
+      }
+      
+      // Make sure cart state is preserved when the screen regains focus
+      if (route.params?.cartItems) {
+        setCart(route.params.cartItems);
+      }
+    }, [route.params?.address, route.params?.cartItems])
+  );
+
   const findExistingItemIndex = (cartArray, item) => {
     return cartArray.findIndex(cartItem => {
       const sameCustomIngredients = cartItem.customIngredients.length === item.customIngredients.length &&
@@ -101,8 +128,8 @@ export default function CartPage() {
 
     setLoading(true);
     const generatedOrderId = Math.floor(100000 + Math.random() * 900000).toString();
-    setOrderId(generatedOrderId); // Set the order ID
-    console.log("Generated Order ID:", generatedOrderId); // Log the generated order ID
+    setOrderId(generatedOrderId);
+    console.log("Generated Order ID:", generatedOrderId);
 
     try {
         // Prepare the order data
@@ -135,25 +162,25 @@ export default function CartPage() {
         Alert.alert('Success', `Order placed successfully! Your order ID is ${generatedOrderId}`);
 
         // Fetch order details after placing the order
-        await getData(generatedOrderId); // Pass the generatedOrderId to getData
+        await getData(generatedOrderId);
     } catch (error) {
         setLoading(false);
         Alert.alert('Error', 'Failed to place order. Please try again.');
         console.error('Order placement error:', error);
     }
-};
+  };
 
-const getData = async (orderId) => {
+  const getData = async (orderId) => {
     if (!orderId) {
         console.error("Order ID is not set.");
         return;
     }
 
-    console.log("Fetching data for order ID:", orderId); // Log the order ID
+    console.log("Fetching data for order ID:", orderId);
 
     const { data, error } = await supabase
         .from("orders")
-        .select("order_id, user_id, address, res_id,price") // Ensure you're selecting the correct fields
+        .select("order_id, user_id, address, res_id, price")
         .eq("order_id", orderId)
         .single();
 
@@ -163,14 +190,30 @@ const getData = async (orderId) => {
         return;
     }
 
-    setDetail(data); // Set the fetched data to detail state
-};
+    setDetail(data);
+  };
 
   const handleContinueShopping = () => {
     setOrderPlaced(false);
     setCheckoutModalVisible(false);
-    navigation.goBack(); // Go back to the menu
+    navigation.goBack();
   };
+
+  // Function to handle map location selection - UPDATED
+  const handleMapSelection = () => {
+    // Navigate to the map screen and pass all current state to preserve context
+    navigation.navigate('MapScreen', {
+      cartItems: cart, // Pass current cart items
+      restaurantId: restaurantId, 
+      user_id: user_id,
+      updateCart: updateCart, // Pass the updateCart function
+      onLocationSelect: (selectedAddress) => {
+        console.log("Address selected from map:", selectedAddress);
+        setAddress(selectedAddress);
+      }
+    });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -354,17 +397,25 @@ const getData = async (orderId) => {
                     </View>
                   </View>
                   
-                  {/* Delivery Address */}
+                  {/* Delivery Address with Map Button */}
                   <View style={styles.checkoutSection}>
                     <Text style={styles.checkoutSectionTitle}>Delivery Address</Text>
-                    <TextInput
-                      style={styles.addressInput}
-                      placeholder="Enter your delivery address"
-                      value={address}
-                      onChangeText={setAddress}
-                      multiline
-                      numberOfLines={3}
-                    />
+                    <View style={styles.addressInputContainer}>
+                      <TextInput
+                        style={styles.addressInput}
+                        placeholder="Enter your delivery address"
+                        value={address}
+                        onChangeText={setAddress}
+                        multiline
+                        numberOfLines={3}
+                      />
+                      <TouchableOpacity 
+                        style={styles.mapButton}
+                        onPress={handleMapSelection}
+                      >
+                        <Ionicons name="location" size={24} color="white" />
+                      </TouchableOpacity>
+                    </View>
                   </View>
                   
                   {/* Payment Method - Just a placeholder, not functional */}
@@ -596,13 +647,26 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 10
   },
+  // Styles for map location
+  addressInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
   addressInput: {
+    flex: 1,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 5,
     padding: 10,
     backgroundColor: 'white',
     textAlignVertical: 'top'
+  },
+  mapButton: {
+    backgroundColor: 'purple',
+    padding: 10,
+    borderRadius: 5,
+    marginLeft: 10,
+    alignSelf: 'flex-start'
   },
   paymentOption: {
     flexDirection: 'row',
