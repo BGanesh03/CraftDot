@@ -47,8 +47,8 @@ project:
       
     backend:
       - "🗃️ Supabase (PostgreSQL)"
-      
-      - "🔐 Supabase Auth"
+
+      - "🔐 firebase (Authentication)"
       
       - "📡 Supabase JS SDK for API calls"
 
@@ -76,7 +76,9 @@ project:
     
     - "📦 Install: npm install"
     
-    - "🔑 Add Supabase keys in supabaseClient.js"
+    - "🔑 Add Supabase keys in supabaseClient.js" Get the keys from supabase cloud
+
+    - "🔑 Add firebase config in firebaseauth.js" Get the config from firebase cloud
     
     - "🚀 Run: expo start"
 
