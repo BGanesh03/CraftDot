@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import HomePage from './shop';
 
 export default function OrderSummary() {
   const route = useRoute();
@@ -98,7 +99,7 @@ export default function OrderSummary() {
       {/* Continue Shopping Button */}
       <TouchableOpacity 
         style={styles.continueButton}
-        onPress={goToHome}
+        onPress={() => navigation.navigate("Home")}
       >
         <Text style={styles.continueButtonText}>Continue Shopping</Text>
       </TouchableOpacity>

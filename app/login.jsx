@@ -72,7 +72,7 @@ const LoginScreen = ({ navigation }) => {
 
         {/* Bottom Half - Login Inputs */}
         <View style={styles.loginContainer}>
-          <Text style={styles.title}>Login to CraftDot</Text>
+          <Text style={styles.title}>Login to Built2Bite</Text>
 
           <TextInput
             style={styles.input}

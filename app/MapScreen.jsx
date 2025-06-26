@@ -19,24 +19,56 @@ const MapScreen = () => {
     const [address, setAddress] = useState("");
 
     // Extract all necessary parameters from route 
-    const { cartItems, restaurantId, user_id, updateCart } = route.params || {};
+    const { cartItems, restaurantId, user_id, updateCart, returnToCheckout } = route.params || {};
 
     useEffect(() => {
-        (async () => {
+        getCurrentLocation();
+    }, []);
+
+    const getCurrentLocation = async () => {
+        try {
             let { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== 'granted') {
                 alert('Permission to access location was denied');
                 return;
             }
-            let location = await Location.getCurrentPositionAsync({});
-            setRegion({
+            
+            // Get the most accurate location possible
+            let location = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.Highest,
+                maximumAge: 10000 // Use a location no more than 10 seconds old
+            });
+            
+            const currentRegion = {
                 latitude: location.coords.latitude,
                 longitude: location.coords.longitude,
                 latitudeDelta: 0.01,
                 longitudeDelta: 0.01,
+            };
+            
+            // Update region and also set as selected location
+            setRegion(currentRegion);
+            setSelectedLocation({
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude
             });
-        })();
-    }, []);
+            
+            // Get address for the current location
+            let reverseGeocode = await Location.reverseGeocodeAsync({
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude
+            });
+            
+            if (reverseGeocode.length > 0) {
+                let locationData = reverseGeocode[0];
+                let fullAddress = `${locationData.name || ""}, ${locationData.street || ""}, ${locationData.city || ""}, ${locationData.region || ""}, ${locationData.country || ""}`;
+                setAddress(fullAddress.trim());
+            }
+        } catch (error) {
+            console.error("Error getting location:", error);
+            alert("Failed to get your current location. Please try again.");
+        }
+    };
 
     const handleMapPress = async (event) => {
         const { latitude, longitude } = event.nativeEvent.coordinate;
@@ -58,19 +90,20 @@ const MapScreen = () => {
 
         console.log("Confirmed address:", address);
         
-        // Check if there's a callback function from the parent component
+        // Call location select callback if provided
         if (route.params?.onLocationSelect) {
             route.params.onLocationSelect(address);
         }
         
-        // Pass ALL original parameters back along with the new address
+        // Pass back all parameters with the address
         navigation.navigate('CartPage', { 
             address,
-            cartItems, // Return the cart items to preserve state
+            cartItems,
             restaurantId,
             user_id,
-            updateCart, // Return the updateCart function
-            ...route.params // Also include any other params that were passed
+            updateCart,
+            openCheckoutModal: true, // Signal to open checkout modal automatically
+            ...route.params
         });
     };
 
@@ -86,6 +119,29 @@ const MapScreen = () => {
                     <Marker coordinate={selectedLocation} title="Selected Location" />
                 )}
             </MapView>
+
+            {/* Current Location Button */}
+            <TouchableOpacity
+                onPress={getCurrentLocation}
+                style={{
+                    position: 'absolute',
+                    top: 20,
+                    right: 20,
+                    backgroundColor: 'white',
+                    width: 50,
+                    height: 50,
+                    borderRadius: 25,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    elevation: 4,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 2,
+                }}
+            >
+                <Text style={{ fontSize: 24 }}>📍</Text>
+            </TouchableOpacity>
 
             <View style={{
                 position: 'absolute',

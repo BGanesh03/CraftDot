@@ -1,14 +1,3 @@
-
-// import { Stack } from 'expo-router';
-
-// // import Landing from './index';
-// import Login from './login';
-// export default function RootLayout() {
-//   return (
-//     // <Landing />
-//     <Login />
-//   );
-// }
 import CartPage from './cart'
 import Login from './login';
 import Index from './index';
@@ -26,6 +15,7 @@ import OrderSummary from './summary'
 const Stack = createStackNavigator();
 
 import { StatusBar } from 'react-native';
+import CalCalculator from './calci';
 
 export default function RootLayout() {
   return (
@@ -49,6 +39,8 @@ export default function RootLayout() {
         <Stack.Screen name="CartPage" component={CartPage} options={{ title: 'CartPage' }} />
         <Stack.Screen name="OrderSummary" component={OrderSummary} options={{ title: 'OrderSummary' }} />
         <Stack.Screen name="MapScreen" component={MapScreen} options={{ title: 'map' }} />
+        <Stack.Screen name="calci" component={CalCalculator} options={{ title: 'cal' }} />
+
 
 
 

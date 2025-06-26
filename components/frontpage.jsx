@@ -30,7 +30,7 @@ export default function FrontPage() {
       />
 
       <View style={styles.content}>
-        <Text style={styles.title}>Welcome to CraftDot Food</Text>
+        <Text style={styles.title}>Welcome to Built2Bite Food</Text>
 
         {/* ✅ Ensuring Button is Visible */}
         <View style={styles.buttonContainer}>

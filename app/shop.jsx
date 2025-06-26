@@ -42,7 +42,7 @@ const HomePage = () => {
     <ImageBackground source={require("@/assets/images/back1.png")} style={styles.backgroundImage}>
       <ScrollView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.logo}>CraftDot</Text>
+          <Text style={styles.logo}>Built2Bite</Text>
           <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)}>
             <Entypo name="dots-three-vertical" size={24} color="white" />
           </TouchableOpacity>
@@ -88,7 +88,7 @@ const HomePage = () => {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>&copy; 2025 CraftDot. All rights reserved.</Text>
+          <Text style={styles.footerText}>&copy; 2025 Built2Bite. All rights reserved.</Text>
         </View>
       </ScrollView>
     </ImageBackground>

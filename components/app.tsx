@@ -36,7 +36,7 @@ function FrontPage({ setScreen }: ScreenProps) {
               style={styles.image}
             />
       <View style={styles.content}>
-        <Text style={styles.title}>Welcome to CraftDot Food</Text>
+        <Text style={styles.title}>Welcome to Built2Bite Food</Text>
 
         {/* ✅ Clicking button changes screen */}
         <TouchableOpacity onPress={() => setScreen("login")} style={styles.button}>

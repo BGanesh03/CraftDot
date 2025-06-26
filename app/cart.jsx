@@ -40,14 +40,19 @@ export default function CartPage() {
       setAddress(route.params.address);
     }
     
-    // Make sure to preserve cart items when returning from MapScreen
+    // Preserve cart items when returning from MapScreen
     if (route.params?.cartItems) {
       console.log("Cart items preserved after map navigation:", route.params.cartItems);
       setCart(route.params.cartItems);
     }
-  }, [route.params?.address, route.params?.cartItems]);
+    
+    // Automatically open checkout modal if requested
+    if (route.params?.openCheckoutModal) {
+      setCheckoutModalVisible(true);
+    }
+  }, [route.params?.address, route.params?.cartItems, route.params?.openCheckoutModal]);
 
-  // We can also use useFocusEffect to ensure the address is updated when returning from MapScreen
+  // We can also use useFocusEffect to ensure the state is updated when returning from MapScreen
   useFocusEffect(
     React.useCallback(() => {
       if (route.params?.address) {
@@ -58,8 +63,15 @@ export default function CartPage() {
       if (route.params?.cartItems) {
         setCart(route.params.cartItems);
       }
-    }, [route.params?.address, route.params?.cartItems])
+      
+      // Automatically open checkout modal if requested
+      if (route.params?.openCheckoutModal) {
+        setCheckoutModalVisible(true);
+      }
+    }, [route.params?.address, route.params?.cartItems, route.params?.openCheckoutModal])
   );
+  
+  // Rest of your CartPage code remains the same
 
   const findExistingItemIndex = (cartArray, item) => {
     return cartArray.findIndex(cartItem => {
@@ -199,14 +211,14 @@ export default function CartPage() {
     navigation.goBack();
   };
 
-  // Function to handle map location selection - UPDATED
+  // UPDATED: Function now includes openCheckoutModal flag
   const handleMapSelection = () => {
     // Navigate to the map screen and pass all current state to preserve context
     navigation.navigate('MapScreen', {
-      cartItems: cart, // Pass current cart items
+      cartItems: cart,
       restaurantId: restaurantId, 
       user_id: user_id,
-      updateCart: updateCart, // Pass the updateCart function
+      updateCart: updateCart,
       onLocationSelect: (selectedAddress) => {
         console.log("Address selected from map:", selectedAddress);
         setAddress(selectedAddress);

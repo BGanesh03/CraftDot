@@ -97,6 +97,10 @@ export default function Profilee() {
         <TouchableOpacity style={styles.button} onPress={handleSave}>
           <Text style={styles.buttonText}>Save</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('calci')}>
+  <Text style={styles.buttonText}>Calorie Calc</Text>
+</TouchableOpacity>
+
 
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Home')}>
           <Text style={styles.buttonText}>Back</Text>

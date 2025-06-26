@@ -28,7 +28,7 @@ export default function Landing() {
                   color:'white',
                   marginTop:30,
                   marginBottom:20
-          }}>Welcome to CraftDot </Text>
+          }}>Welcome to Built2Bite </Text>
         </View>
 
           <Text style={{fontSize:20,
