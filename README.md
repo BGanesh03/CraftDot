@@ -1,50 +1,71 @@
-# Welcome to your Expo app 👋
+project:
+  name: "🍱 CraftDot"
+  tagline: "Your Food. Your Way. Customizable Ordering App 🍔✨"
+  short_description: >
+    CraftDot lets users log in, customize meals, and place food orders from restaurants they choose.
+    Built with React Native and powered by Supabase, it's designed to fight food waste by giving control to the user.
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+  project_status: "✅ User-Side Complete "
+  summary:
+    - "✅ Login, Signup, and Authentication with Supabase"
+    - "✅ Users can browse, customize, and place orders"
+    - "✅ Admin/backend is connected using Supabase (PostgreSQL)"
+    - "🚧 Final tweaks needed for production deployment"
+    - "❌ Restaurant-side module not created"
 
-## Get started
+  features:
+    - "🔐 User Auth (Sign up & Login)"
+    - "📋 View & Customize Recipes"
+    - "🛒 Place Food Orders"
+    - "🔗 Supabase-Connected Realtime Backend"
+    - "🌱 Minimal Waste: No subscriptions, just user-chosen meals"
 
-1. Install dependencies
+  tech_stack:
+    frontend:
+      - "⚛️ React Native (Expo)"
+      - "📲 React Navigation"
+    backend:
+      - "🗃️ Supabase (PostgreSQL)"
+      - "🔐 Supabase Auth"
+      - "📡 Supabase JS SDK for API calls"
 
-   ```bash
-   npm install
-   ```
+  project_structure:
+    base: "📁 CraftDot/"
+    folders:
+      - "📁 src/"
+      - " ├── components/"
+      - " ├── screens/"
+      - " ├── navigation/"
+      - " ├── services/"
+      - " └── assets/"
+      - "📁 supabase/"
+      - " ├── supabaseClient.js"
+      - " └── auth.js"
+    files:
+      - "📄 App.js"
 
-2. Start the app
+  setup_instructions:
+    - "🔻 Clone: git clone https://github.com/BGanesh03/CraftDot.git"
+    - "📂 Navigate: cd CraftDot"
+    - "📦 Install: npm install"
+    - "🔑 Add Supabase keys in supabaseClient.js"
+    - "🚀 Run: expo start"
 
-   ```bash
-    npx expo start
-   ```
+  author:
+    name: "👨‍💻 Ganesh B"
+    role: "Final Year MCA Student"
+    expertise: "MERN Stack, Java Spring Boot, React Native, Supabase"
+    status_note: "💡 This is a learning-focused project and is not being developed further."
 
-In the output, you'll find options to open the app in a
+  development_scope:
+    user_side:
+      status: "✅ Complete"
+      notes: "Users can log in, view items, and place orders."
+    restaurant_side:
+      status: "❌ Not Developed"
+      notes: "No admin or restaurant portal created or connected."
+    deployment:
+      status: "🛠️ Partially Done"
+      notes: "Minor polishing and testing pending — app not deployed."
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+  license: "🆓 Open-source | Use for learning and demo purposes"
