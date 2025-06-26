@@ -6,34 +6,48 @@ project:
   
   short_description: >
     CraftDot lets users log in, customize meals, and place food orders from restaurants they choose.
+    
     Built with React Native and powered by Supabase, it's designed to fight food waste by giving control to the user.
 
   project_status: "✅ User-Side Complete "
   
   summary:
     - "✅ Login, Signup, and Authentication with Supabase"
+    
     - "✅ Users can browse, customize, and place orders"
+    
     - "✅ Admin/backend is connected using Supabase (PostgreSQL)"
+    
     - "🚧 Final tweaks needed for production deployment"
+    
     - "❌ Restaurant-side module not created"
 
   features:
     - "🔐 User Auth (Sign up & Login)"
+    
     - "📋 View & Customize Recipes"
+    
     - "🛒 Place Food Orders"
+    
     - "🔗 Supabase-Connected Realtime Backend"
+    
     - "🌱 Minimal Waste: No subscriptions, just user-chosen meals"
 
   tech_stack:
     frontend:
       - "⚛️ React Native (Expo)"
+      
       - "📲 React Navigation"
+      
     backend:
       - "🗃️ Supabase (PostgreSQL)"
+      
       - "🔐 Supabase Auth"
+      
       - "📡 Supabase JS SDK for API calls"
 
   project_structure:
+  
     base: "📁 CraftDot/"
     folders:
       - "📁 src/"
@@ -49,16 +63,25 @@ project:
       - "📄 App.js"
 
   setup_instructions:
+  
     - "🔻 Clone: git clone https://github.com/BGanesh03/CraftDot.git"
+    
     - "📂 Navigate: cd CraftDot"
+    
     - "📦 Install: npm install"
+    
     - "🔑 Add Supabase keys in supabaseClient.js"
+    
     - "🚀 Run: expo start"
 
   author:
+  
     name: "👨‍💻 Ganesh B"
+    
     role: "Final Year MCA Student"
+    
     expertise: "MERN Stack, Java Spring Boot, React Native, Supabase"
+    
     status_note: "💡 This is a learning-focused project and is not being developed further."
 
   development_scope:
