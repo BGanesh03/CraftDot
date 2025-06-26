@@ -2,9 +2,12 @@ project:
 
   name: "🍱 CraftDot"
   
-  tagline: "Your Food. Your Way. Customizable Ordering App 🍔✨"
+  tagline:
+  
+  "Your Food. Your Way. Customizable Ordering App 🍔✨"
   
   short_description: >
+  
     CraftDot lets users log in, customize meals, and place food orders from restaurants they choose.
     
     Built with React Native and powered by Supabase, it's designed to fight food waste by giving control to the user.
@@ -12,6 +15,7 @@ project:
   project_status: "✅ User-Side Complete "
   
   summary:
+  
     - "✅ Login, Signup, and Authentication with Supabase"
     
     - "✅ Users can browse, customize, and place orders"
@@ -23,6 +27,7 @@ project:
     - "❌ Restaurant-side module not created"
 
   features:
+  
     - "🔐 User Auth (Sign up & Login)"
     
     - "📋 View & Customize Recipes"
@@ -34,6 +39,7 @@ project:
     - "🌱 Minimal Waste: No subscriptions, just user-chosen meals"
 
   tech_stack:
+  
     frontend:
       - "⚛️ React Native (Expo)"
       
@@ -85,6 +91,7 @@ project:
     status_note: "💡 This is a learning-focused project and is not being developed further."
 
   development_scope:
+  
     user_side:
       status: "✅ Complete"
       notes: "Users can log in, view items, and place orders."
