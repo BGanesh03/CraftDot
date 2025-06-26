@@ -39,7 +39,8 @@ app-example
 
 # Example to hide a file or folder from Git:
 .env                 # Hides environment variables
-supabaseClient.js # If hardcoded keys are in it (not recommended)
+supabase.js # If hardcoded keys are in it (not recommended)
+firebaseauth.js
 node_modules/        # Avoid pushing huge dependency folders
 *.log                # Ignore all log files
 
